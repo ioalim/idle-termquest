@@ -11,5 +11,10 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0.79"
-crossterm = "0.27.0"
+cfg-if = "1.0.0"
+ratatui = { version = "0.25.0", default-features = false }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 ratatui = "0.25.0"
+crossterm = "0.27.0"
+tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread"] }
