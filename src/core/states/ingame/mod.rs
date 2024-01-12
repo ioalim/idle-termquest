@@ -194,8 +194,15 @@ impl State for InGame {
                                 self.command.push(c)
                             }
                         }
-                        if c == 'q' && !self.command.is_typing() {
-                            ctx.should_quit = true;
+                        match c {
+                            'q' if !self.command.is_typing() => {
+                                ctx.should_quit = true;
+                            },
+                            ':' if !self.command.is_typing() => {
+                                self.selected_widget = StateWidget::Command;
+                                self.command.enter();
+                            }
+                            _ => ()
                         }
                     }
                     KeyCode::Enter => {
