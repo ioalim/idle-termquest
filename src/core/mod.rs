@@ -1,80 +1,88 @@
 use anyhow::Result;
-#[cfg(not(target_arch = "wasm32"))]
-use crossterm::event::KeyCode;
 
-use ratatui::{Frame, layout::{Layout, Direction, Constraint}, widgets::{Paragraph, Block, Borders, Wrap}, style::{Stylize, Color}};
+use ratatui::{
+    layout::{Constraint, Direction, Layout},
+    style::Stylize,
+    widgets::{Block, Borders, Paragraph, Wrap},
+    Frame,
+};
 
 mod states;
-use states::{State, Welcome, InGame, StateType};
+use states::{InGame, State, StateType, Welcome};
 
-use crate::{Event, Context};
+mod entities;
+
+mod components;
+
+mod consts;
+
+use crate::{Context, Event};
+
+use self::consts::PRIMARY;
 
 pub struct App {
-    state: Box<dyn State>
+    state: Box<dyn State>,
 }
 
 impl App {
     pub fn new() -> Self {
         App {
-            state: Box::new(Welcome::new())
+            state: Box::new(Welcome::new()),
         }
     }
 
     pub fn init(&mut self) -> Result<()> {
-
         self.state.init();
         Ok(())
     }
 
     pub fn handle_event(&mut self, ctx: &mut Context, event: Event) {
-        match event {
-            #[cfg(not(target_arch = "wasm32"))]
-            Event::Key(key) => {
-                match key.code {
-                    KeyCode::Char('q') => ctx.should_quit = true,
-                    _ => ()
-                }
-                self.state.handle_event(Event::Key(key), ctx);
-                if let Some(state) = self.state.handle_event(event, ctx) {
-                    self.change_state(state);
-                }
-            },
-            event => {
-                if let Some(state) = self.state.handle_event(event, ctx) {
-                    self.change_state(state);
-                }
-            }
+        if let Some(state) = self.state.handle_event(event, ctx) {
+            self.change_state(state);
         }
     }
 
     pub fn update(&mut self, ctx: &mut Context) {
-        self.state.update(ctx);
+        if let Some(state) = self.state.update(ctx) {
+            self.change_state(state);
+        }
     }
 
     pub fn render(&mut self, frame: &mut Frame, ctx: &Context) {
         let layout = Layout::new(
             Direction::Vertical,
-            [Constraint::Min(1), Constraint::Max(5)])
-            .split(frame.size());
+            [Constraint::Min(1), Constraint::Max(5)],
+        )
+        .split(frame.size());
         frame.render_widget(
             Paragraph::new(ctx.get_log().iter().map(|s| s.as_str()).collect::<String>())
-                .block(Block::new().borders(Borders::ALL).fg(Color::Cyan).title(" log "))
-                .wrap(Wrap { trim: false }), 
-            layout[1]);
+                .fg(PRIMARY)
+                .block(
+                    Block::new()
+                        .borders(Borders::ALL)
+                        .fg(PRIMARY)
+                        .title(" Debug "),
+                )
+                .wrap(Wrap { trim: false }),
+            layout[1],
+        );
         self.state.render(frame, layout[0]);
     }
 
-    fn change_state(&mut self, new_state: StateType) {
-        match new_state {
-            StateType::Welcome
-                if !matches!(self.state.get_type(), StateType::Welcome) => {
-                    self.state = Box::new(Welcome::new())
-            },
-            StateType::InGame
-                if !matches!(self.state.get_type(), StateType::InGame) => {
-                    self.state = Box::new(InGame::new())
-            },
-            _ => ()
+    fn change_state(&mut self, state: StateType) {
+        let maybe_new_state: Option<Box<dyn State>> = match state {
+            StateType::Welcome if self.state.get_type() != StateType::Welcome => {
+                Some(Box::new(Welcome::new()))
+            }
+            StateType::InGame if self.state.get_type() != StateType::InGame => {
+                Some(Box::new(InGame::new()))
+            }
+            _ => None,
+        };
+        if let Some(new_state) = maybe_new_state {
+            self.state.destroy();
+            self.state = new_state;
+            self.state.init();
         }
     }
 }

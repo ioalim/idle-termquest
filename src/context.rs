@@ -35,4 +35,3 @@ pub struct Config {
     pub tick_rate: f64,
     pub frame_rate: f64,
 }
-

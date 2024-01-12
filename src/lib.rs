@@ -29,8 +29,8 @@ cfg_if::cfg_if! {
 
             let mut ctx = Context::default()
                 .config(Config {
-                    tick_rate: 7.,
-                    frame_rate: 7.
+                    tick_rate: 24.,
+                    frame_rate: 24.
                 });
 
             let mut backend = Crossterm::new()?

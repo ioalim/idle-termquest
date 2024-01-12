@@ -1,16 +1,24 @@
 use std::{
     io::{stdout, Stdout},
-    time::Duration, ops::{Deref, DerefMut}
+    ops::{Deref, DerefMut},
+    time::Duration,
 };
 
 use anyhow::Result;
 use crossterm::{
-    event::{KeyEventKind, Event as CrosstermEvent, EnableMouseCapture, EnableBracketedPaste, DisableBracketedPaste, DisableMouseCapture},
-    terminal::{EnterAlternateScreen, LeaveAlternateScreen}, cursor,
+    cursor,
+    event::{
+        DisableBracketedPaste, DisableMouseCapture, EnableBracketedPaste, EnableMouseCapture,
+        Event as CrosstermEvent, KeyEventKind,
+    },
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen},
 };
-use futures::{StreamExt, FutureExt};
-use ratatui::backend:: CrosstermBackend;
-use tokio::{sync::mpsc::{self, UnboundedReceiver, UnboundedSender}, task::JoinHandle};
+use futures::{FutureExt, StreamExt};
+use ratatui::backend::CrosstermBackend;
+use tokio::{
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    task::JoinHandle,
+};
 use tokio_util::sync::CancellationToken;
 
 use crate::Event;
@@ -207,7 +215,6 @@ impl Drop for Crossterm {
     }
 }
 
-
 //pub async fn run(core: Core) -> Result<()> {
 //    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
 //    terminal.clear()?;
@@ -240,5 +247,3 @@ impl Drop for Crossterm {
 //    }
 //    Ok(())
 //}
-
-
