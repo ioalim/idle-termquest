@@ -16,6 +16,8 @@ mod components;
 
 mod consts;
 
+mod types;
+
 use crate::{Context, Event};
 
 use self::consts::PRIMARY;

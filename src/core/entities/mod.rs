@@ -1,8 +1,7 @@
-use self::types::{BasicStat, Info};
+use super::types::{Info, BasicStat};
 
 pub mod enemy;
 pub mod hero;
-pub mod types;
 
 pub trait Entity {
     fn info(&self) -> &Info;

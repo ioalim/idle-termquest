@@ -1,8 +1,9 @@
 use rand::random;
 use serde::{Deserialize, Serialize};
 
+use crate::core::types::{Info, BasicStat};
+
 use super::{
-    types::{BasicStat, Info},
     Entity, EntityType,
 };
 
