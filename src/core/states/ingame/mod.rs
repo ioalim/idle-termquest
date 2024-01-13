@@ -13,7 +13,7 @@ use ratatui::{
 
 use crate::{
     core::{
-        components::{Command, EntityList, TurnComponent},
+        components::{Command, EntityList, Turn},
         consts::{ACCENT, PRIMARY},
         entities::{enemy::Enemy, hero::Hero, Entity},
     },
@@ -44,7 +44,7 @@ pub struct InGame {
     selected_widget: StateWidget,
     command: Command,
     log: Vec<String>,
-    turn: TurnComponent,
+    turn: Turn,
 }
 
 impl InGame {
@@ -55,7 +55,7 @@ impl InGame {
             selected_widget: StateWidget::Command,
             command: Command::new(),
             log: Vec::new(),
-            turn: TurnComponent::new(),
+            turn: Turn::new(),
         }
     }
 

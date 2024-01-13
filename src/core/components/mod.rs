@@ -5,4 +5,4 @@ pub mod command;
 pub use command::Command;
 
 pub mod turn;
-pub use turn::TurnComponent;
+pub use turn::Turn;

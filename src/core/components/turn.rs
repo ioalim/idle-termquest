@@ -14,11 +14,11 @@ use crate::core::{
     entities::Entity,
 };
 
-pub struct TurnComponent {
+pub struct Turn {
     vertical_scroll: usize,
 }
 
-impl TurnComponent {
+impl Turn {
     pub fn new() -> Self {
         Self { vertical_scroll: 0 }
     }
