@@ -56,6 +56,9 @@ impl App {
             [Constraint::Min(1), Constraint::Max(5)],
         )
         .split(frame.size());
+
+        self.state.render(frame, layout[0]);
+
         frame.render_widget(
             Paragraph::new(ctx.get_log().iter().map(|s| s.as_str()).collect::<String>())
                 .fg(PRIMARY)
@@ -68,7 +71,6 @@ impl App {
                 .wrap(Wrap { trim: false }),
             layout[1],
         );
-        self.state.render(frame, layout[0]);
     }
 
     fn change_state(&mut self, state: StateType) {

@@ -13,7 +13,7 @@ use ratatui::{
 
 use crate::{
     core::{
-        components::{Command, EntityList, Turn},
+        components::{Command, EntityList, Turn, Component},
         consts::{ACCENT, PRIMARY},
         entities::{enemy::Enemy, hero::Hero, Entity},
     },
@@ -60,7 +60,7 @@ impl InGame {
     }
 
     fn handle_nav(&mut self, e: Event) {
-        if self.command.is_typing() {
+        if self.command.is_entered() {
             return;
         }
         #[cfg(not(target_arch = "wasm32"))]
@@ -118,12 +118,20 @@ impl InGame {
 
 impl State for InGame {
     fn init(&mut self) {
-        self.heroes .entities.push(Rc::new(Hero::new()));
-        self.heroes .entities.push(Rc::new(Hero::new()));
-        self.heroes .entities.push(Rc::new(Hero::new()));
+        self.heroes.entities.push(Rc::new(Hero::new()));
+        self.heroes.entities.push(Rc::new(Hero::new()));
+        self.heroes.entities.push(Rc::new(Hero::new()));
         self.enemies.entities.push(Rc::new(Enemy::new()));
         self.enemies.entities.push(Rc::new(Enemy::new()));
         self.enemies.entities.push(Rc::new(Enemy::new()));
+
+        let mut entities: Vec<Rc<dyn Entity>> = Vec::new();
+        for (h, e) in self.heroes.entities.iter().zip(self.enemies.entities.iter()) {
+            entities.push(h.clone());
+            entities.push(e.clone());
+        }
+
+        self.turn.set_entities(entities);
     }
 
     fn update(&mut self, _ctx: &mut Context) -> Option<StateType> {
@@ -164,13 +172,8 @@ impl State for InGame {
             entity_info_layout[0],
             self.selected_widget == StateWidget::Hero,
         );
-        let mut entities: Vec<Rc<dyn Entity>> = Vec::new();
-        for (h, e) in self.heroes.entities.iter().zip(self.enemies.entities.iter()) {
-            entities.push(h.clone());
-            entities.push(e.clone());
-        }
         self.turn.render(
-            entities,
+            " Turns ",
             frame,
             entity_info_layout[1],
             self.selected_widget == StateWidget::Turn,
@@ -196,6 +199,7 @@ impl State for InGame {
             layout[1],
         );
         self.command.render(
+            " Command ",
             frame,
             layout[2],
             self.selected_widget == StateWidget::Command,
@@ -216,10 +220,10 @@ impl State for InGame {
                             }
                         }
                         match c {
-                            'q' if !self.command.is_typing() => {
+                            'q' if !self.command.is_entered() => {
                                 ctx.should_quit = true;
                             }
-                            ':' if !self.command.is_typing() => {
+                            ':' if !self.command.is_entered() => {
                                 self.selected_widget = StateWidget::Command;
                                 self.command.enter();
                             }
@@ -228,7 +232,7 @@ impl State for InGame {
                     }
                     KeyCode::Enter => {
                         if self.selected_widget == StateWidget::Command {
-                            if self.command.is_typing() {
+                            if self.command.is_entered() {
                                 if let Some(command) = self.command.execute() {
                                     self.log.push(command);
                                 }
@@ -238,7 +242,7 @@ impl State for InGame {
                         }
                     }
                     KeyCode::Backspace => {
-                        if self.selected_widget == StateWidget::Command && self.command.is_typing()
+                        if self.selected_widget == StateWidget::Command && self.command.is_entered()
                         {
                             self.command.pop()
                         };
@@ -247,10 +251,10 @@ impl State for InGame {
                         //self.input.pop_word()
                     }
                     KeyCode::Tab if self.selected_widget == StateWidget::Command => {
-                        self.command.quit();
+                        self.command.exit();
                     }
                     KeyCode::Esc if self.selected_widget == StateWidget::Command => {
-                        self.command.quit();
+                        self.command.exit();
                     }
                     _ => (),
                 }

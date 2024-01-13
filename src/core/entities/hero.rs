@@ -4,11 +4,12 @@ use serde::{Deserialize, Serialize};
 use crate::core::types::{Info, BasicStat, Status};
 
 use super::{
-    Entity, EntityType,
+    Entity, EntityType, Id,
 };
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Hero {
+    pub id: Id,
     pub info: Info,
     pub stat: BasicStat,
     pub status: Status,
@@ -16,14 +17,15 @@ pub struct Hero {
 
 impl Hero {
     pub fn new() -> Self {
-        let spd = random::<u8>();
+        let id = random::<u8>();
         Self {
+            id: id as u32,
             info: Info {
-                name: format!("{}. Hero", spd).into(),
+                name: format!("{}. Hero", id).into(),
                 ..Default::default()
             },
             stat: BasicStat {
-                spd: spd as i32,
+                spd: id as i32,
                 ..Default::default()
             },
             ..Default::default()
@@ -32,6 +34,10 @@ impl Hero {
 }
 
 impl Entity for Hero {
+    fn id(&self) -> Id {
+        self.id
+    }
+
     fn info(&self) -> &Info {
         &self.info
     }

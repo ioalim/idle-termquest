@@ -12,25 +12,26 @@ use crate::core::{
     entities::Entity,
 };
 
+use super::{Component, ComponentType};
+
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct EntityList<E: Entity> {
     pub entities: Vec<Rc<E>>,
+    enter: bool,
 }
 
 impl<E: Entity> EntityList<E> {
     pub fn new() -> Self {
         Self {
             entities: Vec::new(),
+            enter: false,
         }
     }
+}
 
-    pub fn render(
-        &self,
-        title: &str,
-        frame: &mut Frame,
-        area: Rect,
-        selected: bool,
-    ) {
+impl<E: Entity> Component for EntityList<E> {
+    fn render(&mut self, title: &str, frame: &mut Frame, area: Rect, selected: bool) {
         let color = if selected { ACCENT } else { PRIMARY };
         frame.render_widget(
             List::new(
@@ -56,4 +57,21 @@ impl<E: Entity> EntityList<E> {
             area,
         );
     }
+
+    fn get_type(&self) -> ComponentType {
+        ComponentType::EntityList
+    }
+
+    fn enter(&mut self) {
+        self.enter = true;
+    }
+
+    fn is_entered(&self) -> bool {
+        self.enter
+    }
+
+    fn exit(&mut self) {
+        self.enter = false;
+    }
 }
+

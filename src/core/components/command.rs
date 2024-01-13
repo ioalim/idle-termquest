@@ -8,6 +8,9 @@ use ratatui::{
 
 use crate::core::consts::{ACCENT, PRIMARY};
 
+use super::{Component, ComponentType};
+
+#[derive(Debug)]
 pub struct Command {
     content: String,
     enter: bool,
@@ -47,7 +50,19 @@ impl Command {
         }
     }
 
-    pub fn render(&self, frame: &mut Frame, area: Rect, selected: bool) {
+    pub fn execute(&mut self) -> Option<String> {
+        let result = self.content.clone();
+        self.content.clear();
+        Some(result)
+    }
+
+    //pub fn content(&self) -> &String {
+    //    &self.content
+    //}
+}
+
+impl Component for Command {
+    fn render(&mut self, title: &str, frame: &mut Frame, area: Rect, selected: bool) {
         let color = if selected { ACCENT } else { PRIMARY };
         let input_widget_len = area.width as usize - 3;
         let input_exceed_widget = self.content.len() >= input_widget_len;
@@ -83,31 +98,25 @@ impl Command {
                 Block::default()
                     .borders(Borders::ALL)
                     .fg(color)
-                    .title(" Command "),
+                    .title(title),
             ),
             area,
         );
     }
 
-    pub fn execute(&mut self) -> Option<String> {
-        let result = self.content.clone();
-        self.content.clear();
-        Some(result)
+    fn get_type(&self) -> ComponentType {
+        ComponentType::Command
     }
 
-    pub fn enter(&mut self) {
+    fn enter(&mut self) {
         self.enter = true;
     }
 
-    pub fn quit(&mut self) {
-        self.enter = false;
-    }
-
-    pub fn is_typing(&self) -> bool {
+    fn is_entered(&self) -> bool {
         self.enter
     }
 
-    //pub fn content(&self) -> &String {
-    //    &self.content
-    //}
+    fn exit(&mut self) {
+        self.enter = false;
+    }
 }
