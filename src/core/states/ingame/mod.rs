@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::rc::Rc;
+
 #[cfg(not(target_arch = "wasm32"))]
 use crossterm::event::{KeyCode, KeyModifiers};
 use ratatui::{
@@ -37,12 +39,12 @@ enum NavDirection {
 }
 
 pub struct InGame {
-    heroes: Vec<Hero>,
-    enemies: Vec<Enemy>,
+    heroes: Vec<Rc<Hero>>,
+    enemies: Vec<Rc<Enemy>>,
     selected_widget: StateWidget,
     command: Command,
     log: Vec<String>,
-    turn_widget: TurnComponent,
+    turn: TurnComponent,
 }
 
 impl InGame {
@@ -53,7 +55,7 @@ impl InGame {
             selected_widget: StateWidget::Command,
             command: Command::new(),
             log: Vec::new(),
-            turn_widget: TurnComponent::new(),
+            turn: TurnComponent::new(),
         }
     }
 
@@ -116,12 +118,12 @@ impl InGame {
 
 impl State for InGame {
     fn init(&mut self) {
-        self.heroes.push(Hero::new());
-        self.heroes.push(Hero::new());
-        self.heroes.push(Hero::new());
-        self.enemies.push(Enemy::new());
-        self.enemies.push(Enemy::new());
-        self.enemies.push(Enemy::new());
+        self.heroes.push(Rc::new(Hero::new()));
+        self.heroes.push(Rc::new(Hero::new()));
+        self.heroes.push(Rc::new(Hero::new()));
+        self.enemies.push(Rc::new(Enemy::new()));
+        self.enemies.push(Rc::new(Enemy::new()));
+        self.enemies.push(Rc::new(Enemy::new()));
     }
 
     fn update(&mut self, _ctx: &mut Context) -> Option<StateType> {
@@ -163,12 +165,12 @@ impl State for InGame {
             entity_info_layout[0],
             self.selected_widget == StateWidget::Hero,
         );
-        let mut entities: Vec<&dyn Entity> = Vec::new();
+        let mut entities: Vec<Rc<dyn Entity>> = Vec::new();
         for (h, e) in self.heroes.iter().zip(self.enemies.iter()) {
-            entities.push(h);
-            entities.push(e);
+            entities.push(h.clone());
+            entities.push(e.clone());
         }
-        self.turn_widget.render(
+        self.turn.render(
             entities,
             frame,
             entity_info_layout[1],

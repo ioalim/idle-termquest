@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use ratatui::{
     layout::Rect,
     style::Stylize,
@@ -16,7 +18,7 @@ pub struct EntityList;
 impl EntityList {
     pub fn render<E: Entity>(
         title: &str,
-        entts: &Vec<E>,
+        entts: &Vec<Rc<E>>,
         frame: &mut Frame,
         area: Rect,
         selected: bool,

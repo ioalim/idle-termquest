@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, rc::Rc};
 
 use ratatui::{
     layout::{Margin, Rect},
@@ -25,7 +25,7 @@ impl TurnComponent {
 
     pub fn render(
         &self,
-        mut entts: Vec<&dyn Entity>,
+        mut entts: Vec<Rc<dyn Entity>>,
         frame: &mut Frame,
         area: Rect,
         selected: bool,
