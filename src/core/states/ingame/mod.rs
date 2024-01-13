@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::rc::Rc;
+use std::{rc::Rc, time::{Duration, Instant}};
 
 #[cfg(not(target_arch = "wasm32"))]
 use crossterm::event::{KeyCode, KeyModifiers};
@@ -15,7 +15,7 @@ use crate::{
     core::{
         components::{Command, EntityList, Turn, Component},
         consts::{ACCENT, PRIMARY},
-        entities::{enemy::Enemy, hero::Hero, Entity},
+        entities::{enemy::Enemy, hero::Hero, Entity, Id},
     },
     Context, Event,
 };
@@ -41,10 +41,12 @@ enum NavDirection {
 pub struct InGame {
     heroes: EntityList<Hero>,
     enemies: EntityList<Enemy>,
+    current_turn: Option<Id>,
     selected_widget: StateWidget,
     command: Command,
     log: Vec<String>,
     turn: Turn,
+    timer: Instant,
 }
 
 impl InGame {
@@ -52,10 +54,12 @@ impl InGame {
         InGame {
             heroes: EntityList::new(),
             enemies: EntityList::new(),
+            current_turn: None,
             selected_widget: StateWidget::Command,
             command: Command::new(),
             log: Vec::new(),
             turn: Turn::new(),
+            timer: Instant::now()
         }
     }
 
@@ -132,9 +136,19 @@ impl State for InGame {
         }
 
         self.turn.set_entities(entities);
+
+        self.current_turn = self.turn.get_current_turn();
+
+        self.timer = Instant::now();
     }
 
-    fn update(&mut self, _ctx: &mut Context) -> Option<StateType> {
+    fn update(&mut self, ctx: &mut Context) -> Option<StateType> {
+        self.turn.update_next_round_order();
+        if self.timer.elapsed() >= Duration::from_secs(2) {
+            self.timer = Instant::now();
+            self.current_turn = self.turn.pop();
+            ctx.push_log(format!("Current turn: {:?}\n", self.current_turn));
+        }
         None
     }
 

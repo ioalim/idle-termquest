@@ -38,6 +38,7 @@ impl Turn {
         self.next_round_order = next_round_order;
         self.next_round_order
             .sort_by(|a, b| a.stat().spd.cmp(&b.stat().spd));
+        self.current_round_order = self.next_round_order.iter().map(|e| e.id()).collect();
     }
 
     pub fn update_next_round_order(&mut self) {
@@ -68,22 +69,21 @@ impl Turn {
 impl Component for Turn {
     fn render(&mut self, title: &str, frame: &mut Frame, area: Rect, selected: bool) {
         let color = if selected { ACCENT } else { PRIMARY };
-        let entts: Vec<Rc<dyn Entity>> = self.current_round_order.iter().map(|id| {
+        let entts_name: Vec<&str> = self.current_round_order.iter().map(|id| {
             self.next_round_order
                 .iter()
                 .find(|e| e.id() == *id)
-                .unwrap()
-                .clone()
-        }).chain(self.next_round_order.iter().map(|e| e.clone())).collect();
+                .unwrap().info().name.deref()
+        }).chain(self.next_round_order.iter().map(|e| e.info().name.deref())).collect();
         let paragraph = Paragraph::new(
-            entts
+            entts_name
                 .iter()
                 .enumerate()
-                .map(|(i, e)| {
+                .map(|(i, name)| {
                     if self.vertical_scroll == i && selected {
-                        Line::styled(e.info().name.deref(), Style::default().reversed())
+                        Line::styled(*name, Style::default().reversed())
                     } else {
-                        Line::from(e.info().name.deref())
+                        Line::from(*name)
                     }
                 })
                 .collect::<Vec<_>>(),
