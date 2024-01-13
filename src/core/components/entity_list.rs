@@ -13,12 +13,20 @@ use crate::core::{
 };
 
 #[allow(dead_code)]
-pub struct EntityList;
+pub struct EntityList<E: Entity> {
+    pub entities: Vec<Rc<E>>,
+}
 
-impl EntityList {
-    pub fn render<E: Entity>(
+impl<E: Entity> EntityList<E> {
+    pub fn new() -> Self {
+        Self {
+            entities: Vec::new(),
+        }
+    }
+
+    pub fn render(
+        &self,
         title: &str,
-        entts: &Vec<Rc<E>>,
         frame: &mut Frame,
         area: Rect,
         selected: bool,
@@ -26,7 +34,7 @@ impl EntityList {
         let color = if selected { ACCENT } else { PRIMARY };
         frame.render_widget(
             List::new(
-                entts
+                self.entities
                     .iter()
                     .map(|e| {
                         ListItem::new(format!(

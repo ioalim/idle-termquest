@@ -39,8 +39,8 @@ enum NavDirection {
 }
 
 pub struct InGame {
-    heroes: Vec<Rc<Hero>>,
-    enemies: Vec<Rc<Enemy>>,
+    heroes: EntityList<Hero>,
+    enemies: EntityList<Enemy>,
     selected_widget: StateWidget,
     command: Command,
     log: Vec<String>,
@@ -50,8 +50,8 @@ pub struct InGame {
 impl InGame {
     pub fn new() -> Self {
         InGame {
-            heroes: Vec::new(),
-            enemies: Vec::new(),
+            heroes: EntityList::new(),
+            enemies: EntityList::new(),
             selected_widget: StateWidget::Command,
             command: Command::new(),
             log: Vec::new(),
@@ -118,12 +118,12 @@ impl InGame {
 
 impl State for InGame {
     fn init(&mut self) {
-        self.heroes.push(Rc::new(Hero::new()));
-        self.heroes.push(Rc::new(Hero::new()));
-        self.heroes.push(Rc::new(Hero::new()));
-        self.enemies.push(Rc::new(Enemy::new()));
-        self.enemies.push(Rc::new(Enemy::new()));
-        self.enemies.push(Rc::new(Enemy::new()));
+        self.heroes .entities.push(Rc::new(Hero::new()));
+        self.heroes .entities.push(Rc::new(Hero::new()));
+        self.heroes .entities.push(Rc::new(Hero::new()));
+        self.enemies.entities.push(Rc::new(Enemy::new()));
+        self.enemies.entities.push(Rc::new(Enemy::new()));
+        self.enemies.entities.push(Rc::new(Enemy::new()));
     }
 
     fn update(&mut self, _ctx: &mut Context) -> Option<StateType> {
@@ -131,8 +131,8 @@ impl State for InGame {
     }
 
     fn render(&mut self, frame: &mut Frame, area: Rect) {
-        let heroes_count = self.heroes.len() as u16;
-        let enemies_count = self.enemies.len() as u16;
+        let heroes_count = self.heroes.entities.len() as u16;
+        let enemies_count = self.enemies.entities.len() as u16;
         let entity_info_height = if heroes_count > enemies_count && heroes_count + 2 < 9 {
             heroes_count + 2
         } else if enemies_count + 2 < 9 {
@@ -158,15 +158,14 @@ impl State for InGame {
             ],
         )
         .split(layout[0]);
-        EntityList::render(
+        self.heroes.render(
             " Heroes ",
-            &self.heroes,
             frame,
             entity_info_layout[0],
             self.selected_widget == StateWidget::Hero,
         );
         let mut entities: Vec<Rc<dyn Entity>> = Vec::new();
-        for (h, e) in self.heroes.iter().zip(self.enemies.iter()) {
+        for (h, e) in self.heroes.entities.iter().zip(self.enemies.entities.iter()) {
             entities.push(h.clone());
             entities.push(e.clone());
         }
@@ -176,9 +175,8 @@ impl State for InGame {
             entity_info_layout[1],
             self.selected_widget == StateWidget::Turn,
         );
-        EntityList::render(
+        self.enemies.render(
             " Enemies ",
-            &self.enemies,
             frame,
             entity_info_layout[2],
             self.selected_widget == StateWidget::Enemy,
