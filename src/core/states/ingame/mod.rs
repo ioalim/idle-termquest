@@ -11,9 +11,9 @@ use ratatui::{
 
 use crate::{
     core::{
-        components::{Command, EntityList},
+        components::{Command, EntityList, TurnComponent},
         consts::{ACCENT, PRIMARY},
-        entities::{enemy::Enemy, hero::Hero},
+        entities::{enemy::Enemy, hero::Hero, Entity},
     },
     Context, Event,
 };
@@ -24,6 +24,7 @@ use super::{State, StateType};
 enum StateWidget {
     Hero,
     Enemy,
+    Turn,
     Log,
     Command,
 }
@@ -41,6 +42,7 @@ pub struct InGame {
     selected_widget: StateWidget,
     command: Command,
     log: Vec<String>,
+    turn_widget: TurnComponent,
 }
 
 impl InGame {
@@ -51,6 +53,7 @@ impl InGame {
             selected_widget: StateWidget::Command,
             command: Command::new(),
             log: Vec::new(),
+            turn_widget: TurnComponent::new(),
         }
     }
 
@@ -89,18 +92,21 @@ impl InGame {
                     StateWidget::Log => StateWidget::Command,
                     StateWidget::Hero => StateWidget::Log,
                     StateWidget::Enemy => StateWidget::Log,
+                    StateWidget::Turn => StateWidget::Log,
                     _ => self.selected_widget,
                 };
             }
             NavDirection::Right => {
                 self.selected_widget = match self.selected_widget {
-                    StateWidget::Hero => StateWidget::Enemy,
+                    StateWidget::Hero => StateWidget::Turn,
+                    StateWidget::Turn => StateWidget::Enemy,
                     _ => self.selected_widget,
                 };
             }
             NavDirection::Left => {
                 self.selected_widget = match self.selected_widget {
-                    StateWidget::Enemy => StateWidget::Hero,
+                    StateWidget::Enemy => StateWidget::Turn,
+                    StateWidget::Turn => StateWidget::Hero,
                     _ => self.selected_widget,
                 };
             }
@@ -143,7 +149,11 @@ impl State for InGame {
         .split(area);
         let entity_info_layout = Layout::new(
             Direction::Horizontal,
-            [Constraint::Percentage(50), Constraint::Percentage(50)],
+            [
+                Constraint::Ratio(1, 3),
+                Constraint::Ratio(1, 3),
+                Constraint::Ratio(1, 3),
+            ],
         )
         .split(layout[0]);
         EntityList::render(
@@ -153,11 +163,22 @@ impl State for InGame {
             entity_info_layout[0],
             self.selected_widget == StateWidget::Hero,
         );
+        let mut entities: Vec<&dyn Entity> = Vec::new();
+        for (h, e) in self.heroes.iter().zip(self.enemies.iter()) {
+            entities.push(h);
+            entities.push(e);
+        }
+        self.turn_widget.render(
+            entities,
+            frame,
+            entity_info_layout[1],
+            self.selected_widget == StateWidget::Turn,
+        );
         EntityList::render(
             " Enemies ",
             &self.enemies,
             frame,
-            entity_info_layout[1],
+            entity_info_layout[2],
             self.selected_widget == StateWidget::Enemy,
         );
         let log_color = if self.selected_widget == StateWidget::Log {
@@ -197,12 +218,12 @@ impl State for InGame {
                         match c {
                             'q' if !self.command.is_typing() => {
                                 ctx.should_quit = true;
-                            },
+                            }
                             ':' if !self.command.is_typing() => {
                                 self.selected_widget = StateWidget::Command;
                                 self.command.enter();
                             }
-                            _ => ()
+                            _ => (),
                         }
                     }
                     KeyCode::Enter => {
@@ -226,6 +247,9 @@ impl State for InGame {
                         //self.input.pop_word()
                     }
                     KeyCode::Tab if self.selected_widget == StateWidget::Command => {
+                        self.command.quit();
+                    }
+                    KeyCode::Esc if self.selected_widget == StateWidget::Command => {
                         self.command.quit();
                     }
                     _ => (),

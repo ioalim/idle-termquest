@@ -25,8 +25,7 @@ impl Event {
     pub fn key(&self) -> Option<KeyEvent> {
         match self {
             Event::Key(k) => Some(*k),
-            _ => None
+            _ => None,
         }
     }
 }
-

@@ -1,3 +1,4 @@
+use rand::random;
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -13,12 +14,16 @@ pub struct Enemy {
 
 impl Enemy {
     pub fn new() -> Self {
+        let spd = random::<u8>();
         Self {
             info: Info {
-                name: "Enemy".into(),
+                name: format!("{}. Enemy", spd).into(),
                 ..Default::default()
             },
-            ..Default::default()
+            stat: BasicStat {
+                spd: spd as i32,
+                ..Default::default()
+            },
         }
     }
 }
