@@ -80,7 +80,7 @@ impl Component for Turn {
                 .iter()
                 .enumerate()
                 .map(|(i, name)| {
-                    if self.vertical_scroll == i && selected {
+                    if self.vertical_scroll == i && self.enter {
                         Line::styled(*name, Style::default().reversed())
                     } else {
                         Line::from(*name)
@@ -94,7 +94,7 @@ impl Component for Turn {
 
         frame.render_widget(paragraph, area);
 
-        if !selected {
+        if !self.enter {
             return;
         }
 

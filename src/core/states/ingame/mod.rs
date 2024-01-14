@@ -43,6 +43,7 @@ pub struct InGame {
     enemies: EntityList<Enemy>,
     current_turn: Option<Id>,
     selected_widget: StateWidget,
+    is_in_a_widget: bool,
     command: Command,
     log: Vec<String>,
     turn: Turn,
@@ -56,6 +57,7 @@ impl InGame {
             enemies: EntityList::new(),
             current_turn: None,
             selected_widget: StateWidget::Command,
+            is_in_a_widget: false,
             command: Command::new(),
             log: Vec::new(),
             turn: Turn::new(),
@@ -64,7 +66,7 @@ impl InGame {
     }
 
     fn handle_nav(&mut self, e: Event) {
-        if self.command.is_entered() {
+        if self.is_in_a_widget {
             return;
         }
         #[cfg(not(target_arch = "wasm32"))]
@@ -85,37 +87,41 @@ impl InGame {
     }
 
     fn nav_to(&mut self, direction: NavDirection) {
-        match direction {
+        let maybe_next_widget = match direction {
             NavDirection::Up => {
-                self.selected_widget = match self.selected_widget {
-                    StateWidget::Command => StateWidget::Log,
-                    StateWidget::Log => StateWidget::Hero,
-                    _ => self.selected_widget,
-                };
+                match self.selected_widget {
+                    StateWidget::Command => Some(StateWidget::Log),
+                    StateWidget::Log     => Some(StateWidget::Hero),
+                    _ => None,
+                }
             }
             NavDirection::Down => {
-                self.selected_widget = match self.selected_widget {
-                    StateWidget::Log => StateWidget::Command,
-                    StateWidget::Hero => StateWidget::Log,
-                    StateWidget::Enemy => StateWidget::Log,
-                    StateWidget::Turn => StateWidget::Log,
-                    _ => self.selected_widget,
-                };
+                match self.selected_widget {
+                    StateWidget::Log   => Some(StateWidget::Command),
+                    StateWidget::Hero  => Some(StateWidget::Log),
+                    StateWidget::Enemy => Some(StateWidget::Log),
+                    StateWidget::Turn  => Some(StateWidget::Log),
+                    _ => None,
+                }
             }
             NavDirection::Right => {
-                self.selected_widget = match self.selected_widget {
-                    StateWidget::Hero => StateWidget::Turn,
-                    StateWidget::Turn => StateWidget::Enemy,
-                    _ => self.selected_widget,
-                };
+                match self.selected_widget {
+                    StateWidget::Hero => Some(StateWidget::Turn),
+                    StateWidget::Turn => Some(StateWidget::Enemy),
+                    _ => None,
+                }
             }
             NavDirection::Left => {
-                self.selected_widget = match self.selected_widget {
-                    StateWidget::Enemy => StateWidget::Turn,
-                    StateWidget::Turn => StateWidget::Hero,
-                    _ => self.selected_widget,
-                };
+                match self.selected_widget {
+                    StateWidget::Enemy => Some(StateWidget::Turn),
+                    StateWidget::Turn  => Some(StateWidget::Hero),
+                    _ => None,
+                }
             }
+        };
+
+        if let Some(next_wid) = maybe_next_widget {
+            self.selected_widget = next_wid;
         }
     }
 }
@@ -245,13 +251,28 @@ impl State for InGame {
                         }
                     }
                     KeyCode::Enter => {
-                        if self.selected_widget == StateWidget::Command {
-                            if self.command.is_entered() {
-                                if let Some(command) = self.command.execute() {
-                                    self.log.push(command);
-                                }
-                            } else {
-                                self.command.enter();
+                        if !self.is_in_a_widget {
+                            match self.selected_widget {
+                                StateWidget::Hero => self.heroes.enter(),
+                                StateWidget::Enemy => self.enemies.enter(),
+                                StateWidget::Turn => self.turn.enter(),
+                                StateWidget::Log => (),
+                                StateWidget::Command => self.command.enter(),
+                            }
+
+                            if self.selected_widget != StateWidget::Log {
+                                self.is_in_a_widget = true;
+                            } 
+                        } else {
+                            match self.selected_widget {
+                                StateWidget::Command => {
+                                    if self.command.is_entered() {
+                                        if let Some(command) = self.command.execute() {
+                                            self.log.push(command);
+                                        }
+                                    }
+                                },
+                                _ => ()
                             }
                         }
                     }
@@ -267,8 +288,17 @@ impl State for InGame {
                     KeyCode::Tab if self.selected_widget == StateWidget::Command => {
                         self.command.exit();
                     }
-                    KeyCode::Esc if self.selected_widget == StateWidget::Command => {
-                        self.command.exit();
+                    KeyCode::Esc => {
+                        if self.is_in_a_widget {
+                            match self.selected_widget {
+                                StateWidget::Hero => self.heroes.exit(),
+                                StateWidget::Enemy => self.enemies.exit(),
+                                StateWidget::Turn => self.turn.exit(),
+                                StateWidget::Log => (),
+                                StateWidget::Command => self.command.exit(),
+                            }
+                            self.is_in_a_widget = false;
+                        } 
                     }
                     _ => (),
                 }
