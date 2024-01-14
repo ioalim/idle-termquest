@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{rc::Rc, time::{Duration, Instant}};
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -246,6 +244,7 @@ impl State for InGame {
                             ':' if !self.command.is_entered() => {
                                 self.selected_widget = StateWidget::Command;
                                 self.command.enter();
+                                self.is_in_a_widget = true;
                             }
                             _ => (),
                         }

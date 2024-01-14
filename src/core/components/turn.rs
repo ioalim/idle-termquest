@@ -61,6 +61,8 @@ impl Turn {
             let last_idx = self.current_round_order.len() + self.next_round_order.len() - 1;
             if self.selected_item_idx > last_idx {
                 self.selected_item_idx = last_idx;
+            } else {
+                self.select_up();
             }
             self.current_round_order.get(0).copied()
         }
@@ -73,9 +75,23 @@ impl Turn {
     pub fn goto_next_round(&mut self) {
         self.current_round_order.pop_front();
         self.current_round_order = self.next_round_order.iter().map(|e| e.id()).collect();
-        let last_idx = self.current_round_order.len() + self.next_round_order.len() - 1;
+        let last_idx = self.current_round_order.len() + self.next_round_order.len();
         if self.selected_item_idx > last_idx {
             self.selected_item_idx = last_idx;
+        } else {
+            self.select_up();
+        }
+    }
+
+    fn select_up(&mut self) {
+        if self.selected_item_idx > 0 {
+            self.selected_item_idx -= 1;
+        }
+    }
+
+    fn select_down(&mut self) {
+        if self.selected_item_idx < self.current_round_order.len() + self.next_round_order.len() - 1 {
+            self.selected_item_idx += 1;
         }
     }
 }
@@ -85,15 +101,12 @@ impl Component for Turn {
         match event {
             Event::Key(k) => match k.code {
                 KeyCode::Char(c) => match c {
-                    'k' if self.selected_item_idx.gt(&0) => self.selected_item_idx -= 1,
-                    'j' if self
-                        .selected_item_idx
-                        .lt(&(self.current_round_order.len() + self.next_round_order.len())) =>
-                    {
-                        self.selected_item_idx += 1
-                    }
+                    'k' => self.select_up(),
+                    'j' => self.select_down(),
                     _ => (),
-                },
+                }
+                KeyCode::Up => self.select_up(),
+                KeyCode::Down => self.select_down(),
                 _ => (),
             },
             _ => (),
