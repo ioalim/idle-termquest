@@ -6,7 +6,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::core::consts::{ACCENT, PRIMARY};
+use crate::{core::consts::{ACCENT, PRIMARY}, Event};
 
 use super::{Component, ComponentType};
 
@@ -62,6 +62,10 @@ impl Command {
 }
 
 impl Component for Command {
+    fn handle_event(&mut self, event: &Event) {
+        
+    }
+
     fn render(&mut self, title: &str, frame: &mut Frame, area: Rect, selected: bool) {
         let color = if selected { ACCENT } else { PRIMARY };
         let input_widget_len = area.width as usize - 3;

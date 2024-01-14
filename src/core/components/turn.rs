@@ -9,10 +9,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::core::{
+use crate::{core::{
     consts::{ACCENT, PRIMARY},
     entities::{Entity, Id},
-};
+}, Event};
 
 use super::{Component, ComponentType};
 
@@ -67,6 +67,10 @@ impl Turn {
 }
 
 impl Component for Turn {
+    fn handle_event(&mut self, event: &Event) {
+        
+    }
+
     fn render(&mut self, title: &str, frame: &mut Frame, area: Rect, selected: bool) {
         let color = if selected { ACCENT } else { PRIMARY };
         let entts_name: Vec<&str> = self.current_round_order.iter().map(|id| {

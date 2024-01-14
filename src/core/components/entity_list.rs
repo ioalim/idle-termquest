@@ -7,10 +7,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::core::{
+use crate::{core::{
     consts::{ACCENT, PRIMARY},
     entities::Entity,
-};
+}, Event};
 
 use super::{Component, ComponentType};
 
@@ -31,6 +31,10 @@ impl<E: Entity> EntityList<E> {
 }
 
 impl<E: Entity> Component for EntityList<E> {
+    fn handle_event(&mut self, event: &Event) {
+        
+    }
+
     fn render(&mut self, title: &str, frame: &mut Frame, area: Rect, selected: bool) {
         let color = if selected { ACCENT } else { PRIMARY };
         frame.render_widget(

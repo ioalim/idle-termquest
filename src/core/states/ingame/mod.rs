@@ -65,7 +65,7 @@ impl InGame {
         }
     }
 
-    fn handle_nav(&mut self, e: Event) {
+    fn handle_nav(&mut self, e: &Event) {
         if self.is_in_a_widget {
             return;
         }
@@ -306,7 +306,16 @@ impl State for InGame {
             }
             _ => (),
         }
-        self.handle_nav(event);
+        self.handle_nav(&event);
+        if self.is_in_a_widget {
+            match self.selected_widget {
+                StateWidget::Hero => self.heroes.handle_event(&event),
+                StateWidget::Enemy => self.enemies.handle_event(&event),
+                StateWidget::Turn => self.turn.handle_event(&event),
+                StateWidget::Log => (),
+                StateWidget::Command => self.command.handle_event(&event),
+            }
+        }
         None
     }
 

@@ -10,7 +10,10 @@ pub mod turn;
 use ratatui::{Frame, layout::Rect};
 pub use turn::Turn;
 
+use crate::Event;
+
 pub trait Component: Debug {
+    fn handle_event(&mut self, event: &Event);
     fn render(&mut self, title: &str, frame: &mut Frame, area: Rect, selected: bool);
     fn enter(&mut self);
     fn is_entered(&self) -> bool;
