@@ -62,7 +62,7 @@ impl Command {
 }
 
 impl Component for Command {
-    fn handle_event(&mut self, event: &Event) {
+    fn handle_event(&mut self, _event: &Event) {
         
     }
 

@@ -31,7 +31,7 @@ impl<E: Entity> EntityList<E> {
 }
 
 impl<E: Entity> Component for EntityList<E> {
-    fn handle_event(&mut self, event: &Event) {
+    fn handle_event(&mut self, _event: &Event) {
         
     }
 
