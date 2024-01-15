@@ -64,6 +64,11 @@ impl Turn {
             } else {
                 self.select_up();
             }
+            if self.selected_item_idx < self.paragraph_offset {
+                self.paragraph_offset -= 1;
+            } else if self.selected_item_idx - self.paragraph_offset >= 3 {
+                self.paragraph_offset += 1;
+            }
             self.current_round_order.get(0).copied()
         }
     }
@@ -80,6 +85,11 @@ impl Turn {
             self.selected_item_idx = last_idx;
         } else {
             self.select_up();
+        }
+        if self.selected_item_idx < self.paragraph_offset {
+            self.paragraph_offset -= 1;
+        } else if self.selected_item_idx - self.paragraph_offset >= 3 {
+            self.paragraph_offset += 1;
         }
     }
 

@@ -142,6 +142,8 @@ impl State for InGame {
         self.turn.set_entities(entities);
 
         self.current_turn = self.turn.get_current_turn();
+        self.heroes.set_turn(self.current_turn);
+        self.enemies.set_turn(self.current_turn);
 
         self.timer = Instant::now();
     }
@@ -151,6 +153,8 @@ impl State for InGame {
         if self.timer.elapsed() >= Duration::from_secs(2) {
             self.timer = Instant::now();
             self.current_turn = self.turn.pop();
+            self.heroes.set_turn(self.current_turn);
+            self.enemies.set_turn(self.current_turn);
             ctx.push_log(format!("Current turn: {:?}\n", self.current_turn));
         }
         None

@@ -14,6 +14,7 @@ use super::{Component, ComponentType};
 pub struct Command {
     content: String,
     enter: bool,
+    cursor_offset: usize,
 }
 
 impl Command {
@@ -21,6 +22,7 @@ impl Command {
         Self {
             content: String::new(),
             enter: false,
+            cursor_offset: 0,
         }
     }
 
@@ -55,10 +57,6 @@ impl Command {
         self.content.clear();
         Some(result)
     }
-
-    //pub fn content(&self) -> &String {
-    //    &self.content
-    //}
 }
 
 impl Component for Command {
@@ -68,30 +66,23 @@ impl Component for Command {
 
     fn render(&mut self, title: &str, frame: &mut Frame, area: Rect, selected: bool) {
         let color = if selected { ACCENT } else { PRIMARY };
-        let input_widget_len = area.width as usize - 3;
-        let input_exceed_widget = self.content.len() >= input_widget_len;
+        let inner_widget_len = area.width as usize - 3;
+        let input_exceed_widget = self.content.len() >= inner_widget_len;
+
+        let rendered_content = if input_exceed_widget {
+            let offset = self
+                .content
+                .char_indices()
+                .nth_back(inner_widget_len - 1)
+                .map(|(i, _)| i)
+                .unwrap_or(0);
+            self.content[offset..].to_owned() + " "
+        } else {
+            self.content.to_owned()
+        };
 
         frame.render_widget(
-            Paragraph::new(Line::from(vec![
-                Span::raw(if input_exceed_widget {
-                    let offset = self
-                        .content
-                        .char_indices()
-                        .nth_back(input_widget_len - 1)
-                        .map(|(i, _)| i)
-                        .unwrap_or(0);
-                    self.content[offset..].to_owned()
-                } else {
-                    self.content.to_owned()
-                }),
-                {
-                    if self.enter {
-                        Span::styled(" ", Style::default().reversed())
-                    } else {
-                        Span::styled("", Style::default())
-                    }
-                },
-            ]))
+            Paragraph::new(rendered_content)
             .fg(color)
             .alignment(if input_exceed_widget {
                 Alignment::Right
@@ -106,6 +97,17 @@ impl Component for Command {
             ),
             area,
         );
+
+        if self.enter {
+            frame.set_cursor(
+                if input_exceed_widget {
+                    area.x + 1 + inner_widget_len as u16
+                } else {
+                    area.x + 1 + self.content.len() as u16
+                },
+                area.y + 1,
+            );
+        }
     }
 
     fn get_type(&self) -> ComponentType {
